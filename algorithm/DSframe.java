@@ -11,7 +11,7 @@ public class DSframe {
     }
 
     public static void Naive(ArrayList<ArrayList<String>> abc, ArrayList<ArrayList<Integer>> inter,  ArrayList<Integer> ttt, double ad[][]) throws IOException {
-        File file = new File("/Users/binbingu/Documents/Codes/Write-test/Change-Batch.txt");
+        File file = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/Change_Batch1000.txt");
 
         if (file.exists()) {  //if the file exists, then delete it and then create it so that we can get a null file every time
             file.delete();
@@ -22,11 +22,17 @@ public class DSframe {
             inter = Cluster.OneByOne(inter, ttt, Cluster.Parameter.threshold, ad);
             ttt.clear();
         }
+        //translate the mark of records by adding 1 i.e. 0>1, 1>2, ...
+//        for (int i=0;i<inter.size();i++){
+//            for (int j=0;j<inter.get(i).size();j++) {
+//                inter.get(i).set(j, inter.get(i).get(j)+1);
+//            }
+//        }
         System.out.println("Naive------------------------"+inter);
     }
 
     public static void DBindexGreedy (ArrayList<ArrayList<Integer>> inter,  ArrayList<Integer> ttt, double ad[][]) throws IOException {
-        File file = new File("/Users/binbingu/Documents/Codes/Write-test/Change-Batch.txt");
+        File file = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/Change_Batch1000.txt");
         FileWriter xw = null;
         xw = new FileWriter(file, true);
         PrintWriter pw = new PrintWriter(xw);
@@ -77,8 +83,8 @@ public class DSframe {
         //for (i=1;i<200;i++){
 
         //File file = new File("/Users/binbingu/Documents/Codes/Write-test/Change-Incre.txt");
-        //File file = new File("/Users/binbingu/Documents/Codes/Write-test/History_batch20.txt");
-        File file = new File("/Users/binbingu/Documents/Codes/Write-test/History_batch50.txt");
+        File file = new File("/Users/binbingu/Documents/Codes/Write-test/History_batch2.txt");
+        //File file = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/History_batch1000.txt");
 
         if (file.exists()) {  //if the file exists, then delete it and then create it so that we can get a null file every time
             file.delete();
@@ -96,11 +102,10 @@ public class DSframe {
         for (int i=1;i<abc.size();i++){
             ttt.add(i);   //record linkage with batch size =1      that means the incremental way may be not polynomial
             //System.out.println("The~"+ i+ "-th round:");                                maybe as complex as stated in the paper which is n^6
-            if((i%50==0)|| i==abc.size()-1){
-
+            if((i%200==0)|| i==abc.size()-1){
                 update++;
-                System.out.println(ttt);
-                Cluster.ClusterData result = Cluster.IncrementalDB(inter, ttt, Cluster.Parameter.threshold, ad);   //this method is quite costly when we consider each record as a snapshot
+                //Cluster.ClusterData result = Cluster.IncrementalDB(inter, ttt, Cluster.Parameter.threshold, ad);   //this method is quite costly when we consider each record as a snapshot
+                Cluster.ClusterData result = Cluster.IncreForCorr(inter, ttt, Cluster.Parameter.threshold, ad);
                 inter = result.inter;
                 merge = merge + result.merge;
                 split = split + result.split;
@@ -109,7 +114,7 @@ public class DSframe {
 
                 System.out.println("Update = " + update);
 
-                if (update !=1){
+                if (update >1){
                     //analyse the changes happened on previous clusters
                     ArrayList<ArrayList<Integer>> c1 = new ArrayList<ArrayList<Integer>>();
                     for (int m = 0; m < precluster.size(); m++) {
@@ -119,7 +124,7 @@ public class DSframe {
                                 Integer temp2[] = new Integer[inter.get(n).size()];
                                 for (int l = 0; l<temp1.length; l++){
                                     temp1[l] = precluster.get(m).get(l);
-                                    System.out.println("temp1[l])=  " + temp1[l]);
+                                    //System.out.println("temp1[l])=  " + temp1[l]);
                                 }
                                 for (int l = 0; l<temp2.length; l++){
                                     temp2[l] = inter.get(n).get(l);
@@ -130,7 +135,6 @@ public class DSframe {
                                 for (int k = 0; k<w.length; k++)
                                 {
                                     temp.add(w[k]);
-
                                 }
                                 c1.add(temp);
                                 //break labe1B;
@@ -140,13 +144,46 @@ public class DSframe {
                     System.out.println("Iteration " + update);
                     System.out.println("Previous Cluster Results have changed into " + c1);
                     System.out.println("New Cluster Results " + inter);
+                    //System.out.println("Current Score: "+ Cluster.DBindex(inter, ad));
+                    System.out.println("Current Score: "+ Cluster.ScoreForCorr(inter, ad));
                     pw.println("Iteration " + update);
                     pw.println("Previous Cluster Results have changed into " + c1);
                     pw.println();
+                    //compute the intesection between c1 and previous cluster
+                    for (int m = 0; m < precluster.size(); m++) {
+                        for (int n = 0; n < c1.size(); n++){
+                            if (Exist(precluster.get(m), c1.get(n))) {
+                                Integer temp3[] = new Integer[precluster.get(m).size()];
+                                Integer temp4[] = new Integer[c1.get(n).size()];
+                                for (int l = 0; l < temp3.length; l++) {
+                                    temp3[l] = precluster.get(m).get(l);
+                                }
+                                for (int l = 0; l < temp4.length; l++) {
+                                    temp4[l] = c1.get(n).get(l);
+                                }
+                                //compute intersection
+                                Integer[] w = getJ(temp3, temp4);
+                                if (w.length != precluster.get(m).size() ){
+                                    pw.println(precluster.get(m)+ " Changes into "+ c1.get(n));
+                                }
+                            }
+                        }
+                    }
                     pw.println("New Cluster Results " + inter);
                     pw.println();
                     c1.removeAll(c1);
                     precluster = (ArrayList<ArrayList<Integer>>) deepCopy(inter);
+                    for (int k =0; k< inter.size(); k++){
+                        System.out.println(" Intra_Sim = "+Cluster.Intra_Cluster(inter.get(k), ad));
+                        if(Cluster.Intra_Cluster(inter.get(k), ad)<0) {
+                            for (int s1 = 0; s1 < inter.get(k).size(); s1++) {
+                                for (int s2 = 0; s2 < inter.get(k).size(); s2++) {
+                                    System.out.println(" SimAd = " + ad[inter.get(k).get(s1)][inter.get(k).get(s2)]);
+                                }
+                            }
+                        }
+                    }
+
                 }
                 else {
                     precluster = (ArrayList<ArrayList<Integer>>) deepCopy(inter);
@@ -158,14 +195,29 @@ public class DSframe {
 
                     System.out.println("Iteration " + update);
                     System.out.println("New Cluster Results " + inter);
+                    //System.out.println("Current Score: "+ Cluster.DBindex(inter, ad));
+                    System.out.println("Current Score: "+ Cluster.ScoreForCorr(inter, ad));
+                    for(i=0; i<inter.size(); i++) {
+                        System.out.println(Cluster.IntraForCorr(inter.get(i), ad));
+                    }
+                    for(i=0; i<inter.size()-1; i++) {
+                        for(int j=i+1; j<inter.size(); j++) {
+                            System.out.println(Cluster.InterForCorr(inter.get(i), inter.get(j), ad));
+                        }
+                    }
                     pw.println("Iteration " + update);
                     pw.println("New Cluster Results " + inter);
                     pw.println();
                 }
-
             }
-        }
 
+        }
+        // Analyze the parameters of each node
+        // Avarage similarity with all records
+        // Avarage similarity with records in the same cluster
+        // The size of the cluster that the record belong to
+        // Avarage similarity of clusters
+        //Output: 1 or 0   1 means staying in the previous cluster, 0 means leaving from previous cluster
 
 
 

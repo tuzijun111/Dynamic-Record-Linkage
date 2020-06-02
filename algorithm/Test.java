@@ -6,7 +6,6 @@ import java.io.*;
 import java.util.*;
 
 
-
 public class Test {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         long startTime = System.currentTimeMillis();
@@ -15,7 +14,7 @@ public class Test {
         //for (int i=0; i<abc.size(); i++)
         //System.out.println(abc.get(i));
         ArrayList<ArrayList<Integer>> source = new ArrayList<ArrayList<Integer>>();
-        source.add( new ArrayList<Integer>());
+        source.add(new ArrayList<Integer>());
         source.get(0).add(0);                     // each i corresponds to abc.get(i)
         //System.out.println(source.get(0));
         ArrayList<ArrayList<Integer>> inter = source;
@@ -47,9 +46,7 @@ public class Test {
 //            e.printStackTrace();
 //        }
 
-
         ArrayList<Integer> ttt = new ArrayList<Integer>();
-
 
 //        DSframe.Naive(abc, inter, ttt, ad);
 //        DSframe.DBindexGreedy(inter, ttt, ad);
@@ -123,7 +120,7 @@ public class Test {
 
         try {
             //BufferedReader reade = new BufferedReader(new FileReader("/Users/binbingu/Documents/Datasets/Cora/cora-master/cora_clean.csv"));
-            BufferedReader reade = new BufferedReader(new FileReader("/Users/binbingu/Documents/Datasets/Cora/cora-master/new500.csv"));
+            BufferedReader reade = new BufferedReader(new FileReader("/Users/binbingu/Documents/Datasets/Cora/cora-master/new200.csv"));
             String line = null;
             int index = 0;
             while ((line = reade.readLine()) != null) {
@@ -227,6 +224,7 @@ public class Test {
     }
 
 
+
     public static double[][] CoraBlock(ArrayList<ArrayList<String>> data)
     {
         //blocking with the number of words, partition items
@@ -270,7 +268,7 @@ public class Test {
                     }
                     else {
                         //admatrix[i][j] = SimFunction.JaccardSetsim(data.get(i).get(0), data.get(j).get(0));
-                        admatrix[i][j] =SimFunction.JaccardSetsim(data.get(i).get(0), data.get(j).get(0));
+                        //admatrix[i][j] =SimFunction.JaccardSetsim(data.get(i).get(0), data.get(j).get(0));
                         if(admatrix[i][j]<Cluster.Parameter.threshold)
                             admatrix[i][j]=0;
                     }
