@@ -5,7 +5,6 @@ import javafx.util.Pair;
 import java.io.*;
 import java.util.*;
 
-
 public class Test {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         long startTime = System.currentTimeMillis();
@@ -22,6 +21,7 @@ public class Test {
         int j=0;
         int k=0;
         double ad[][] = CoraBlock(abc);
+
 
 //        File file = new File("/Users/binbingu/Documents/Codes/Write-test/Adjacent-matrix500.txt");
 //        //File file = new File("/Users/binbingu/Documents/Codes/Write-test/History_batch50.txt");
@@ -119,8 +119,8 @@ public class Test {
         ArrayList<ArrayList<String>> data = new ArrayList<ArrayList<String>>();
 
         try {
-            //BufferedReader reade = new BufferedReader(new FileReader("/Users/binbingu/Documents/Datasets/Cora/cora-master/cora_clean.csv"));
-            BufferedReader reade = new BufferedReader(new FileReader("/Users/binbingu/Documents/Datasets/Cora/cora-master/new200.csv"));
+            BufferedReader reade = new BufferedReader(new FileReader("/Users/binbingu/Documents/Datasets/Cora/cora-master/cora_clean.csv"));
+            //BufferedReader reade = new BufferedReader(new FileReader("/Users/binbingu/Documents/Datasets/Cora/cora-master/400_1878.csv"));
             String line = null;
             int index = 0;
             while ((line = reade.readLine()) != null) {
@@ -261,7 +261,7 @@ public class Test {
                 else{
                             //double te = admatrix[i][j];
                     if((data.get(i).get(1)!="") & (data.get(j).get(1)!="")) {         //need to revise jaccardsim for title attribute
-                        admatrix[i][j] = Math.max(SimFunction.JaccardSetsim(data.get(i).get(0), data.get(j).get(0)), SimFunction.Levensim(data.get(i).get(1), data.get(j).get(1)));
+                        admatrix[i][j] = SimFunction.JaccardSetsim(data.get(i).get(0), data.get(j).get(0));
                         //admatrix[i][j] = Math.max(SimFunction.Jaccardsim(data.get(i).get(0), data.get(j).get(0)), SimFunction.Jaccardsim(data.get(i).get(1), data.get(j).get(1)));
                         if(admatrix[i][j]<Cluster.Parameter.threshold)
                             admatrix[i][j]=0;

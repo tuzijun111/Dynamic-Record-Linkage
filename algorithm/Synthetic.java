@@ -6,9 +6,10 @@ import java.util.Arrays;
 
 public class Synthetic {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
-        long startTime = System.currentTimeMillis();
         ArrayList<ArrayList<String>> abc = new ArrayList<ArrayList<String>>();
         abc= DataPro10000();
+        //abc = Test.DataPro();
+        //System.out.println("abc " + abc.size());
 
 //        for (int i=0; i<abc.size(); i++)
 //             System.out.println(abc.get(i));
@@ -21,46 +22,85 @@ public class Synthetic {
         int j=0;
         int k=0;
         double ad[][] = SyntheticAdj(abc);
-        for (i =0; i<ad.length; i++){
-            System.out.println(Arrays.toString(ad[i]) +" ");
+        //double ad[][] = Test.CoraBlock(abc);
+
+
+        File file = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/Adjacent-matrix1000.txt");
+        //File file = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/History_batch50.txt");
+
+        if (file.exists()) {  //if the file exists, then delete it and then create it so that we can get a null file every time
+            file.delete();
         }
+        file.createNewFile();
+        FileWriter xw = null;
+        xw = new FileWriter(file, true);
+        PrintWriter pw = new PrintWriter(xw);
+        for (i=0;i<ad.length;i++){
+            pw.println(Arrays.toString(ad[i]));
+        }
+        pw.flush();
 
-
-
-//        File file = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/Adjacent-matrix1000.txt");
-//        //File file = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/History_batch50.txt");
-//
-//        if (file.exists()) {  //if the file exists, then delete it and then create it so that we can get a null file every time
-//            file.delete();
-//        }
-//        file.createNewFile();
-//        FileWriter xw = null;
-//        xw = new FileWriter(file, true);
-//        PrintWriter pw = new PrintWriter(xw);
-//        for (i=0;i<ad.length;i++){
-//            pw.println(Arrays.toString(ad[i]));
-//        }
-//        pw.flush();
-//
-//        try {
-//            xw.flush();
-//            pw.close();
-//            xw.close();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
+        try {
+            xw.flush();
+            pw.close();
+            xw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         ArrayList<Integer> ttt = new ArrayList<Integer>();
 
-//        DSframe.Naive(abc, inter, ttt, ad);
-//        DSframe.DBindexGreedy(inter, ttt, ad);
-        DSframe.IncreGreedy(abc, inter, ttt, ad);
+        long startTime = System.currentTimeMillis();
+
+        //Test1.Count(ad);
+        //DSframe.Naive(abc, inter, ttt, ad);
+        //DSframe.DBindexGreedy(inter, ttt, ad);
+        //DSframe.IncreGreedy(abc, inter, ttt, ad);
+
+        DSframe.IncreGreedyForDBindex(abc, inter, ttt, ad);
+
+
+        //ArrayList<ArrayList<Integer>> ClusteringResult1 = DSframe.MLForDBindex(abc, inter, ttt, ad);
+
+//        long startTime = System.currentTimeMillis();
+//        MLbased.PythonScript("MergeModel.py");
+//        MLbased.PythonScript("SplitModel.py");
+//        ArrayList<ArrayList<Integer>> ClusteringResult2 = MLbased.ClusterToFile(abc, ClusteringResult1, ad);
+//
+//        MLbased.PythonScript("MergeModelPredict.py");
+//        ArrayList<ArrayList<Integer>> ClusteringResult3 = MLbased.MergeConverge(ClusteringResult2, ad);
+
+//
+//        MLbased.ClusterToFile2(ClusteringResult3, ad);
+//        System.out.println(ClusteringResult3);
+//
+//        MLbased.PythonScript("SplitModelPredict.py");
+//
+//        ArrayList<ArrayList<Integer>> ClusteringResult4 = MLbased.SplitConverge(ClusteringResult3, ad);
+
+
+
+
 
         long endTime = System.currentTimeMillis();
         System.out.println("Running time：" + (endTime - startTime) + "ms");
-        System.out.println("Current Score: "+ Cluster.ScoreForCorr(inter, ad));
-        //System.out.println("Current DBindex: "+ Cluster.DBindex(inter, ad));
+        //System.out.println("Current Score: "+ Cluster.ScoreForCorr(inter, ad));
+        //System.out.println("Current DBindex: " + Cluster.DBindex(ClusteringResult3, ad));
+        //System.out.println("Current DBindex: " + Cluster.DBindex(ClusteringResult1, ad));
+        System.out.println("Current DBindex: "+ Cluster.DBindex(inter, ad));
+        //System.out.println(ClusteringResult4);
+
+
+//        int a[] = new int[ClusteringResult3.size()];
+//        for (int s = 0; s < ClusteringResult3.size(); s++) {
+//            a[s] = ClusteringResult3.get(s).size();
+//        }
+//        int xxx = 0;
+//        Arrays.sort(a);
+//        for (int l = a.length - 1; l >= 0; l--) {
+//            System.out.print(a[l] + " ");
+//            xxx = xxx + a[l];
+//        }
 
     }
 
@@ -69,7 +109,7 @@ public class Synthetic {
         ArrayList<ArrayList<String>> data = new ArrayList<ArrayList<String>>();
         try {
             BufferedReader reade = new BufferedReader(new FileReader("/Users/binbingu/Documents/Tool/febrl-0.4.2/dsgen/1000.csv"));
-            //BufferedReader reade = new BufferedReader(new FileReader("/Users/binbingu/Documents/Tool/febrl-0.4.2/dsgen/10000.csv"));
+            //BufferedReader reade = new BufferedReader(new FileReader("/Users/binbingu/Documents/Tool/febrl-0.4.2/dsgen/3400.csv"));
             String line = null;
             int index = 0;      //if we do not want to see the attributes, then skip the 1th(0) row.
             while ((line = reade.readLine()) != null) {
@@ -92,8 +132,7 @@ public class Synthetic {
     }
 
 
-    public static double[][] SyntheticAdj(ArrayList<ArrayList<String>> data)
-    {
+    public static double[][] SyntheticAdj(ArrayList<ArrayList<String>> data) {
         //blocking with the number of words, partition items
         double admatrix[][] = new double[data.size()][data.size()];
         //rec_id (0),  culture (1),  sex(2),  age(3),  date_of_birth(4),  title(5),  given_name(6),  surname(7),
@@ -117,6 +156,7 @@ public class Synthetic {
                 a[2] = x4;
                 a[3] = x6;
                 Arrays.sort(a);
+                //admatrix[i][j] = (a[1]+a[2]+ a[3])/3;
                 admatrix[i][j] = (a[2]+ a[3])/2;
                 //admatrix[i][j] = a[3];
 

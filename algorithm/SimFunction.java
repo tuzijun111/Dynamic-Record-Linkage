@@ -178,7 +178,7 @@ public class SimFunction {
         mergeNum = s1.size() + s2.size() - commonNum;
 
         double jaccard = commonNum / mergeNum;
-        if (jaccard<0.8)
+        if (jaccard<0.7)
             jaccard = 0;
 
         return jaccard;

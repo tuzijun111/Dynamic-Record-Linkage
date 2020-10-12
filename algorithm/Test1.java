@@ -1,22 +1,41 @@
 package algorithm;
 
 import java.io.*;
-import java.util.*;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 
 public class Test1 {
-    public static void main(String[] args) throws IOException {
-        ArrayList<ArrayList<String>> test = new ArrayList<ArrayList<String>>();
-        test = Synthetic.DataPro10000();
-//        for (int i = 0; i<test.size(); i++)
-//            System.out.println(test.get(i));
+    public static void main(String[] args) throws IOException, InterruptedException {
 
-        double admatrix[][] = new double[test.size()][test.size()];
-        admatrix = Synthetic.SyntheticAdj(test);
-        for (int i = 0; i<admatrix.length; i++)
-            System.out.println(Arrays.toString(admatrix[i]));
+//        String cmd = "cmd /c python /Users/binbingu/Documents/Codes/Python/MLmodel/test.py";
 
-        Count(admatrix);
+            // TODO Auto-generated method stub
+        long startTime = System.currentTimeMillis();
+            Process proc;
+//            try {
+                proc = Runtime.getRuntime().exec("python /Users/binbingu/Documents/Codes/Python/MLmodel/MergeModel.py");// 执行py文件
+
+//                //用输入输出流来截取结果
+//                BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+//                String line = null;
+//                while ((line = in.readLine()) != null) {
+//                    System.out.println(line);
+//                }
+//                in.close();
+//                proc.waitFor();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+        long endTime = System.currentTimeMillis();
+        System.out.println("Running time：" + (endTime - startTime) + "ms");
+
+
+
     }
 
     public static void Count(double a[][]){
@@ -33,23 +52,23 @@ public class Test1 {
                      continue;
                 }
                 else {
-                    if (a[i][j]>= 0.8)
+                    if (a[i][j]>= 0.85)
                     {
                         count08++;
                         continue;
                     }
                     else {
-                        if(a[i][j]>= 0.7){
+                        if(a[i][j]>= 0.8){
                             count07++;
                             continue;
                         }
                         else{
-                            if(a[i][j]>=0.6){
+                            if(a[i][j]>=0.75){
                                 count06++;
                                 continue;
                             }
                             else {
-                                if(a[i][j]>=0.5){
+                                if(a[i][j]>=0.7){
                                     count05++;
                                     continue;
                                 }
@@ -61,10 +80,10 @@ public class Test1 {
             }
         }
         System.out.println("The number of paris whose value is larger or equal to 0.9 "+count09);
-        System.out.println("The number of paris whose value is larger or equal to 0.8 "+count08);
-        System.out.println("The number of paris whose value is larger or equal to 0.7 "+count07);
-        System.out.println("The number of paris whose value is larger or equal to 0.6 "+count06);
-        System.out.println("The number of paris whose value is larger or equal to 0.5 "+count05);
+        System.out.println("The number of paris whose value is larger or equal to 0.85 "+count08);
+        System.out.println("The number of paris whose value is larger or equal to 0.8 "+count07);
+        System.out.println("The number of paris whose value is larger or equal to 0.75 "+count06);
+        System.out.println("The number of paris whose value is larger or equal to 0.7 "+count05);
     }
 }
 
