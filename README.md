@@ -4,7 +4,7 @@ Dynamic Record Linkage
 
 SimFunction contains all the similarity metrics.
 
-Cluster contains Navie, GreedyDB(Hill-climbing) and incremental DB(Greedy) methods. 
+The Cluster class contains Navie, GreedyDB(Hill-climbing) and incremental DB(Greedy) methods. 
 
 The updates processing is controled by the DSframe class.
 
