@@ -4,8 +4,10 @@ Dynamic Record Linkage
 
 SimFunction contains all the similarity metrics.
 
-Cluster contains Navie, GreedyDB and incremental DB methods.
+Cluster contains Navie, GreedyDB(Hill-climbing) and incremental DB(Greedy) methods. 
 
-Test outputs the results of Cora dataset.
+The updates processing is controled by the DSframe class.
 
-Synthetic outputs the results of synthetic dataset.
+The ML model is built in python. And we call python script in the java programs.
+
+All the experiments are run in the main function of the Synthetic synthetic dataset.
