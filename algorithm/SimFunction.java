@@ -1,10 +1,8 @@
 package algorithm;
 
 import java.awt.*;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.io.*;
+import java.util.*;
 
 
 public class SimFunction {
@@ -178,7 +176,7 @@ public class SimFunction {
         mergeNum = s1.size() + s2.size() - commonNum;
 
         double jaccard = commonNum / mergeNum;
-        if (jaccard<0.7)
+        if (jaccard<0.8)
             jaccard = 0;
 
         return jaccard;
@@ -233,6 +231,7 @@ public class SimFunction {
     }
 
         // 求余弦相似度
+
         public double Cosinesim() {
             double result = 0;
             result = pointMulti(vectorMap) / sqrtMulti(vectorMap);
@@ -268,6 +267,98 @@ public class SimFunction {
             result = Math.sqrt(result);
             return result;
         }
+
+
+        public static double CosineForMusic(ArrayList<String> s1, ArrayList<String> s2, ArrayList<Double> v1, ArrayList<Double> v2) throws IOException, ClassNotFoundException { //Here, there are no duplicates in s1 (and s2)
+        //deepcopy s1,s2,v1,v2. do not change their values
+            ArrayList <String> s3 = new ArrayList<String>();
+            s3 = deepcopy1(s1);
+            ArrayList <String> s4 = new ArrayList<String>();
+            s4 = deepcopy1(s2);
+            ArrayList <Double> v4 = new ArrayList<Double>();
+            v4 = deepcopy2(v2);
+            ArrayList <String> s = new ArrayList<String>();  //final string vector
+            s = deepcopy1(s1);
+            ArrayList <Double> v11 = new ArrayList<Double>();   //the first final vector
+            v11 = deepcopy2(v1);
+            ArrayList <Double> v12 = new ArrayList<Double>();   //the second final vector
+            for (int i = 0; i<s4.size(); i++){
+                if (AdjMatrix.IsIn(s4.get(i), s3)){
+                    continue;
+                }
+                else{
+                    s.add(s4.get(i));    //s is the union vector which contain all kinds of values of the first and second strings
+                    v11.add(0.0);
+                }
+            }
+
+            //compute the vector for the second string
+            for (int k = 0; k<s.size(); k++){
+                int n = IsInPosition(s.get(k), s4);
+                if (n==-1){
+                    v12.add(0.0);
+                }
+                else{
+                    v12.add(v4.get(n));
+                }
+            }
+
+            return Cosine(v11, v12);
+
+        }
+
+
+    public static int IsInPosition(String s, ArrayList<String> array){
+        int x = -1;
+        for(int i=0; i<array.size(); i++){
+            if (s.equals(array.get(i))){
+                x = i;
+                break;
+            }
+        }
+        return x;
+    }
+
+    public static double Cosine(ArrayList <Double> v1, ArrayList <Double> v2){
+        double sum = 0;
+        double sum1 = 0;
+        double sum2 = 0;
+        for (int i = 0; i<v1.size(); i++){
+            sum = sum + v1.get(i)*v2.get(i);
+            sum1 = sum1 + Math.pow(v1.get(i),2);
+            sum2 = sum2 + Math.pow(v2.get(i),2);
+        }
+        return( sum/(Math.sqrt(sum1)*Math.sqrt(sum2)));
+    }
+
+
+
+
+    public static ArrayList<String> deepcopy1(ArrayList<String> src) throws IOException, ClassNotFoundException {
+        ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+        ObjectOutputStream out = new ObjectOutputStream(byteOut);
+        out.writeObject(src);
+
+        ByteArrayInputStream byteIn = new ByteArrayInputStream(byteOut.toByteArray());
+        ObjectInputStream in = new ObjectInputStream(byteIn);
+        @SuppressWarnings("unchecked")
+        ArrayList<String> dest = (ArrayList<String>) in.readObject();
+        return dest;
+    }
+
+    public static ArrayList<Double> deepcopy2(ArrayList<Double> src) throws IOException, ClassNotFoundException {
+        ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+        ObjectOutputStream out = new ObjectOutputStream(byteOut);
+        out.writeObject(src);
+
+        ByteArrayInputStream byteIn = new ByteArrayInputStream(byteOut.toByteArray());
+        ObjectInputStream in = new ObjectInputStream(byteIn);
+        @SuppressWarnings("unchecked")
+        ArrayList<Double> dest = (ArrayList<Double>) in.readObject();
+        return dest;
+    }
+
+
 
 
 

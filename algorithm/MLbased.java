@@ -3,6 +3,7 @@ package algorithm;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Hashtable;
 
 
 public class MLbased {
@@ -10,7 +11,7 @@ public class MLbased {
         PythonScript("MergeModel.py");
     }
 
-    public static ArrayList<ArrayList<Integer>> ClusterToFile(ArrayList<ArrayList<String>> abc, ArrayList<ArrayList<Integer>> vector, double array1[][]) throws IOException {
+    public static ArrayList<ArrayList<Integer>> ClusterToFile(ArrayList<ArrayList<String>> abc, ArrayList<ArrayList<Integer>> vector, ArrayList<Hashtable> adj) throws IOException {
         File file1 = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/DB/prediction/Intra.txt");
         File file2 = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/DB/prediction/Inter.txt");
         File file3 = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/DB/prediction/Size1.txt");
@@ -45,10 +46,10 @@ public class MLbased {
             ttt.clear();
         }
         for (int i=0; i<vector.size(); i++){
-            pw1.print(Cluster.Intra_Cluster(vector.get(i), array1)+ ",");
-            pw2.print(Cluster.MinInter3(i, vector, array1) + ",");
+            pw1.print(Cluster.Intra_Cluster(vector.get(i), adj)+ ",");
+            pw2.print(Cluster.MinInter3(i, vector, adj) + ",");
             pw3.print(vector.get(i).size() + ",");
-            pw4.print(Cluster.MinInter3Cluster(i, vector, array1) + ",");
+            pw4.print(Cluster.MinInter3Cluster(i, vector, adj) + ",");
 
             pw1.flush();
             pw2.flush();
@@ -66,7 +67,7 @@ public class MLbased {
         return vector;
     }
 
-    public static ArrayList<ArrayList<Integer>> MergeConverge(ArrayList<ArrayList<Integer>> vector, double array1[][]) throws IOException{
+    public static ArrayList<ArrayList<Integer>> MergeConverge(ArrayList<ArrayList<Integer>> vector, ArrayList<Hashtable> adj) throws IOException{
     //public static void MergeConverge() throws IOException{
         //read the prediction results from a file, and save them into an arraylist
         long startTime1 = System.currentTimeMillis();
@@ -117,7 +118,7 @@ public class MLbased {
             //This is because existing clusters has been stable, otherwise it can not be taken as a final result. This means existing clusters can not merge with themselves.
             //This kind of analyis should be put into the paper. It is a good point.
             int loop =0;
-            double temp = Cluster.DBindex111(vector, queue, array1);
+            double temp = Cluster.DBindex111(vector, queue, adj);
             int wrongprediction = aa.size(); //used to indicate whether there are clusters to be merged or not.
             while (queue.size()>0){
                 loop ++;
@@ -127,7 +128,7 @@ public class MLbased {
                     wrongprediction --;
                     break;
                 }
-                Cluster.Para res1 = Cluster.MinInterForMerge(queue.get(0), queue, array1);
+                Cluster.Para res1 = Cluster.MinInterForMerge(queue.get(0), queue, adj);
                 int cluster = res1.cluster;
 //                vector.add(queue.get(cluster));
 //                queue.remove(cluster);
@@ -135,8 +136,8 @@ public class MLbased {
 
                 int a111 = queue.get(cluster).size();
                 queue.get(cluster).addAll(queue.get(0));
-                if (Cluster.DBindex222(vector, queue, array1) < temp) {
-                    temp = Cluster.DBindex222(vector, queue, array1);
+                if (Cluster.DBindex222(vector, queue, adj) < temp) {
+                    temp = Cluster.DBindex222(vector, queue, adj);
                     vector.add(queue.get(cluster));
                     queue.remove(cluster);
                     queue.remove(0);
@@ -155,9 +156,9 @@ public class MLbased {
             //ClusterToFile1(vector, array1);
             if (wrongprediction != 0) {
                 //output the parameters of the new clustering
-                ClusterToFile1(vector, array1);
+                ClusterToFile1(vector, adj);
                 PythonScript("MergeModelPredict.py");
-                MergeConverge(vector, array1);
+                MergeConverge(vector, adj);
             }
 
 //            long endTime2 = System.currentTimeMillis();
@@ -174,7 +175,7 @@ public class MLbased {
         return vector;
     }
 
-    public static ArrayList<ArrayList<Integer>> SplitConverge(ArrayList<ArrayList<Integer>> vector, double array1[][]) throws IOException{
+    public static ArrayList<ArrayList<Integer>> SplitConverge(ArrayList<ArrayList<Integer>> vector, ArrayList<Hashtable> adj) throws IOException{
         //public static void MergeConverge() throws IOException{
         //read the prediction results from a file, and save them into an arraylist
         long startTime1 = System.currentTimeMillis();
@@ -214,7 +215,7 @@ public class MLbased {
 //
 //            }
             //remove those clusters in queue from vector
-            double temp = Cluster.DBindex(vector, array1);
+            double temp = Cluster.DBindex(vector, adj);
 //            for (int i = aa.size()-1; i>= 0; i--){
 //                queue.add(vector.get(aa.get(i)));
 //                vector.remove(aa.get(i));
@@ -223,21 +224,21 @@ public class MLbased {
             //int wrongprediction = aa.size(); //used to indicate whether there are clusters to be merged or not.
             for (int i = aa.size()-1; i>= 0; i--){
                 if(vector.get(aa.get(i)).size()>1) {
-                    Cluster.Para res1 = Cluster.MinInterForSplit(vector.get(aa.get(i)), array1);
+                    Cluster.Para res1 = Cluster.MinInterForSplit(vector.get(aa.get(i)), adj);
                     int cluster = res1.cluster;
 
                     vector.add(new ArrayList<>());
                     vector.get(vector.size() - 1).add(vector.get(aa.get(i)).get(cluster));
 
-                    if (Cluster.DBindex(vector, array1) < temp) {
-                        temp = Cluster.DBindex(vector, array1);
+                    if (Cluster.DBindex(vector, adj) < temp) {
+                        temp = Cluster.DBindex(vector, adj);
                     } else {
                         vector.get(aa.get(i)).add(vector.get(aa.get(i)).get(cluster));
                         vector.remove(vector.size() - 1);
                     }
                 }
             }
-            ClusterToFile2(vector, array1);
+            ClusterToFile2(vector, adj);
 
             long endTime1 = System.currentTimeMillis();
             System.out.println("Running time for rounds：" + (endTime1 - startTime1) + "ms");
@@ -280,7 +281,7 @@ public class MLbased {
 
     }
 
-    public static void ClusterToFile1(ArrayList<ArrayList<Integer>> vector, double array1[][]) throws IOException {
+    public static void ClusterToFile1(ArrayList<ArrayList<Integer>> vector, ArrayList<Hashtable> adj) throws IOException {
         File file1 = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/DB/prediction/Intra.txt");
         File file2 = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/DB/prediction/Inter.txt");
         File file3 = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/DB/prediction/Size1.txt");
@@ -308,10 +309,10 @@ public class MLbased {
         PrintWriter pw4 = new PrintWriter(xw4);
         //PrintWriter pw5 = new PrintWriter(xw5);
         for (int i=0; i<vector.size(); i++){
-            pw1.print(Cluster.Intra_Cluster(vector.get(i), array1)+ ",");
-            pw2.print(Cluster.MinInter3(i, vector, array1) + ",");
+            pw1.print(Cluster.Intra_Cluster(vector.get(i), adj)+ ",");
+            pw2.print(Cluster.MinInter3(i, vector, adj) + ",");
             pw3.print(vector.get(i).size() + ",");
-            pw4.print(Cluster.MinInter3Cluster(i, vector, array1) + ",");
+            pw4.print(Cluster.MinInter3Cluster(i, vector, adj) + ",");
 
             pw1.flush();
             pw2.flush();
@@ -329,7 +330,7 @@ public class MLbased {
 
     }
 
-    public static void ClusterToFile2(ArrayList<ArrayList<Integer>> vector, double array1[][]) throws IOException {
+    public static void ClusterToFile2(ArrayList<ArrayList<Integer>> vector, ArrayList<Hashtable> adj) throws IOException {
         File file1 = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/DB/prediction/Intra_S.txt");
         File file2 = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/DB/prediction/Inter_S.txt");
         File file3 = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/DB/prediction/Size1_S.txt");
@@ -353,8 +354,8 @@ public class MLbased {
         PrintWriter pw3 = new PrintWriter(xw3);
         //PrintWriter pw5 = new PrintWriter(xw5);
         for (int i=0; i<vector.size(); i++){
-            pw1.print(Cluster.Intra_Cluster(vector.get(i), array1)+ ",");
-            pw2.print(Cluster.MinInter3(i, vector, array1) + ",");
+            pw1.print(Cluster.Intra_Cluster(vector.get(i), adj)+ ",");
+            pw2.print(Cluster.MinInter3(i, vector, adj) + ",");
             pw3.print(vector.get(i).size() + ",");
             pw1.flush();
             pw2.flush();
@@ -371,7 +372,7 @@ public class MLbased {
     }
 
 
-    public static Cluster.ClusterData Model(ArrayList<ArrayList<Integer>> vector, ArrayList<Integer> array, double k, double array1[][]) throws IOException {
+    public static Cluster.ClusterData Model(ArrayList<ArrayList<Integer>> vector, ArrayList<Integer> array, double k, ArrayList<Hashtable> adj) throws IOException {
         int i = 0;
         int j = 0;
         int p = 0;
@@ -438,10 +439,10 @@ public class MLbased {
 
 
         while (queue.size()>0){
-            double temp = Cluster.DBindex111(vector, queue, array1);
+            double temp = Cluster.DBindex111(vector, queue, adj);
             boolean change = false;
-            Cluster.ClusterVorQ res1 = Cluster.WhichCluster(queue.get(0), vector, queue, array1);
-            if ((res1.inter < 0.4)&& Cluster.Intra_Cluster(queue.get(0), array1)<0.3){
+            Cluster.ClusterVorQ res1 = Cluster.WhichCluster(queue.get(0), vector, queue, adj);
+            if ((res1.inter < 0.4)&& Cluster.Intra_Cluster(queue.get(0), adj)<0.3){
                 if (res1.VorQ == 1){
                      {
                         vector.get(res1.cluster).addAll(queue.get(0));
