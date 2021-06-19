@@ -9,24 +9,18 @@ public class Evaluate {
 
     public static void main(String[] args) throws IOException{
         //InPairForAnyNum();
-        ArrayList<Hashtable> adj = new ArrayList<Hashtable>();
-        Enumeration names;
-        String str;
-        double x= 20.0;
-        adj.add(new Hashtable());
-        //adj.get(adj.size()-1).put(0, 10d);
-        adj.get(adj.size()-1).put(1, x);
+        //ArrayList<Hashtable> adj = new ArrayList<Hashtable>();
+        ArrayList<Integer> temp = new ArrayList<>();
+        Hashtable numbers = new Hashtable();
 
-        adj.get(adj.size()-1).put(2, 30d);
-
-        for (int i=0; i<adj.size(); i++) {
-            for (int j = 0; j < adj.get(i).size(); j++) {
-                if(adj.get(i).get(j)==null)
-                    System.out.println("Hi");
-                else
-                    System.out.println(adj.get(i).get(j));
-            }
+        Enumeration enkey = numbers.keys();
+        while (enkey.hasMoreElements()) {
+            Object aa = enkey.nextElement();
+            temp.add((int)aa);
+            System.out.println("here is key:" + aa);
         }
+        System.out.println(temp);
+
     }
    //structure for precision, recall and F1
     static class Metric {
@@ -55,23 +49,24 @@ public class Evaluate {
 //            artist: the interpreter (artist or band) of the track.
 //    year: date of publication.
 //            language: language of the track.
-    public static Metric PRF_Music(List<Pair> Gold, ArrayList<ArrayList<Integer>> Prediction) throws IOException {
-        ArrayList<ArrayList<Integer>> ab = new ArrayList<ArrayList<Integer>>();
-        ab = ClusterTo2DMusic(Prediction);
-        ArrayList<Integer> item = new ArrayList<Integer>();
-        List<Pair> list = new ArrayList<Pair>();
-        for (int i=0;i<ab.size();i++) {
-            Pair<Integer, Integer> B =  new Pair <Integer, Integer> (ab.get(i).get(0), ab.get(i).get(1));
-            list.add(B);
-        }
 
-        double precision, recall, F1;
-        precision = recall = 0;
-        F1 = F1(Gold, list);
-        return new Metric(precision, recall, F1);
-
-
-    }
+//    public static Metric PRF_Music(List<Pair> Gold, ArrayList<ArrayList<Integer>> Prediction) throws IOException {
+//        ArrayList<ArrayList<Integer>> ab = new ArrayList<ArrayList<Integer>>();
+//        ab = ClusterTo2DMusic(Prediction);
+//        ArrayList<Integer> item = new ArrayList<Integer>();
+//        List<Pair> list = new ArrayList<Pair>();
+//        for (int i=0;i<ab.size();i++) {
+//            Pair<Integer, Integer> B =  new Pair <Integer, Integer> (ab.get(i).get(0), ab.get(i).get(1));
+//            list.add(B);
+//        }
+//
+//        double precision, recall, F1;
+//        precision = recall = 0;
+//        F1 = F1(Gold, list);
+//        return new Metric(precision, recall, F1);
+//
+//
+//    }
 
 
     public static List<Pair> Goldpair(String filepath) throws IOException{
@@ -208,7 +203,7 @@ public class Evaluate {
             //for (int j =0; j<10; j++){
             int x1 = Integer.parseInt(data.get(j).get(0));
             int x2 = Integer.parseInt(data.get(j).get(1));
-            if (x1<=1000&&x2<=1000){
+            if (x1<=15375&&x2<=15375){
                 cluster.add(new ArrayList<Integer>());
                 cluster.get(cluster.size()-1).add(x1);
                 cluster.get(cluster.size()-1).add(x2);
@@ -217,7 +212,7 @@ public class Evaluate {
 
 
         //File file = new File("/Users/binbingu/Documents/Datasets/Music Brzinz/gold.txt");
-        File file = new File("/Users/binbingu/Documents/Datasets/Music Brzinz/goldpair.txt");
+        File file = new File("/Users/binbingu/Documents/Datasets/Music Brzinz/goldpair15.3K.txt");
         FileWriter xw = null;
         xw = new FileWriter(file, true);
         PrintWriter pw = new PrintWriter(xw);
@@ -354,7 +349,19 @@ public class Evaluate {
         return list;
     }
 
-    public static double F1(List<Pair> Gold, List<Pair> Prediction)
+    public static <T> List<T> nonintersection(List<T> list1, List<T> list2) {
+        List<T> list = new ArrayList<T>();
+
+        for (T t : list1) {
+            if(!list2.contains(t)) {
+                list.add(t);
+            }
+        }
+
+        return list;
+    }
+
+    public static Metric PRF(List<Pair> Gold, List<Pair> Prediction)
     {
         double f1=0;
         double precision=0;
@@ -362,7 +369,53 @@ public class Evaluate {
         precision= (float)intersection(Gold, Prediction).size()/Prediction.size();
         recall= (float)intersection(Gold, Prediction).size()/Gold.size();
         f1=(float)(2*precision*recall)/(precision+recall);
-        return f1;
+        return new Metric(precision, recall, f1);
+    }
+
+    public static void Count(ArrayList<Hashtable> adj){
+        int count9 = 0;
+        int count85 = 0;
+        int count8 = 0;
+        int count75 = 0;
+        int count7 = 0;
+        for (int i = 0; i< adj.size() ; i++){
+            for (int j = 0; j< adj.size() ; j++){
+                if(adj.get(i).get(j)==null){
+                    continue;
+                }
+                else {
+                    if ((double) adj.get(i).get(j) >= 0.9) {
+                        count9++;
+                        continue;
+                    } else {
+                        if ((double) adj.get(i).get(j) >= 0.85) {
+                            count85++;
+                            continue;
+                        } else {
+                            if ((double) adj.get(i).get(j) >= 0.8) {
+                                count8++;
+                                continue;
+                            } else {
+                                if ((double) adj.get(i).get(j) >= 0.75) {
+                                    count75++;
+                                    continue;
+                                } else {
+                                    if ((double) adj.get(i).get(j) >= 0.7) {
+                                        count7++;
+                                        continue;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        System.out.println("The number of paris whose value is larger or equal to 0.9 "+count9);
+        System.out.println("The number of paris whose value is larger or equal to 0.85 "+count85);
+        System.out.println("The number of paris whose value is larger or equal to 0.8 "+count8);
+        System.out.println("The number of paris whose value is larger or equal to 0.75 "+count75);
+        System.out.println("The number of paris whose value is larger or equal to 0.7 "+count7);
     }
 
 

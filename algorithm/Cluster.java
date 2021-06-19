@@ -2,12 +2,16 @@ package algorithm;
 
 import java.io.*;
 import java.util.*;
+import java.util.Hashtable;
+
 
 public class Cluster {
 
 
     static class Parameter {
         static double threshold=0.7;
+        static int minDis = 10;
+        static int minPst = 2;
     }
 
     static class ClusterData {
@@ -25,6 +29,7 @@ public class Cluster {
             this.loop = loop;
         }
     }
+
     static class Para {
         double intervalue;
         int cluster;
@@ -48,8 +53,7 @@ public class Cluster {
     }
     //create a data structure for the parameters of clusters, e.g. intra distance (similarity) or inter distance
     //this structure will cost more memory to store these parameters but will improve efficiency
-    static class ClusterParameter
-    {
+    static class ClusterParameter {
         double sum; //store the DBindex value
         ArrayList<Double> intra_vector;
         ArrayList<ArrayList<Double>> inter;
@@ -60,7 +64,139 @@ public class Cluster {
         }
     }
 
+    public static ArrayList<ArrayList<Integer>> static_DBSCAN(ArrayList<Hashtable> adj) {
+        //it is quite easy to do DBSCAN when we have the similarity graph of the data i.e. the variable adj
+        //building the similarity graph needs O(N^2) since we compare n data with n data and get a nxn matrix
+        //In other words, the complexity include the similarity computing
+        //query algorithm randomly choose a data to check its neighboors so that it might not need to check all the data since the labels can be propagated to its neighbors.
+        ArrayList<Integer> Points = new ArrayList<Integer>();//store all the points to be visited in an array
+        ArrayList<ArrayList<Integer>> cluster = new ArrayList<ArrayList<Integer>>(); //store the final clustering result in a 2-d arraylist
+        for (int i =0; i< adj.size(); i++){
+            Points.add(i);
+        }
+        //https://dl.acm.org/doi/pdf/10.1145/3068335
+        cluster.add(new ArrayList<>());
+        while(Points.size()!=0){
+            if(Defined( Points.get(0), cluster)){
+                Points.remove(0);
+                continue;
+            }
+            ArrayList<Integer> neighbor = new ArrayList<>();  //store the neighbor points
+            Enumeration enu = adj.get(Points.get(0)).keys();
+
+            while (enu.hasMoreElements()) {
+                int p = (int) enu.nextElement();
+                if (p!=Points.get(0)) //exclude the point i itself
+                    neighbor.add(p);
+                //System.out.print(enu.nextElement()+" ");
+            }
+            if (adj.get(Points.get(0)).size()<Parameter.minPst){
+                cluster.get(0).add(Points.get(0)); //use the 0th row to store the noise points; here we are checking the point i
+                Points.remove(0);
+                continue;
+            }
+            cluster.add(new ArrayList<>()); //create a new cluster or a new label
+            cluster.get(cluster.size()-1).add(Points.remove(0));
+            while(neighbor.size()!=0){
+                ArrayList<Integer> neighbor1 = new ArrayList<>();
+                if(IsIn(neighbor.get(0), cluster.get(0))){
+                    cluster.get(cluster.size()-1).add(neighbor.get(0));  //if label(q) = Noise then label(q) ← c
+                }
+                if(Defined(neighbor.get(0), cluster))
+                { //currently we are on neighbor.get(j)
+                    neighbor.remove(0); //if label(q)  undefined then continue
+                    continue;
+                }
+                Enumeration enu1 = adj.get(neighbor.get(0)).keys(); // Neighbors N ← RangeQuery(DB, dist,q,ε)
+                while (enu1.hasMoreElements()) {
+                    int q = (int) enu1.nextElement();
+                    if (q!=neighbor.get(0)) //exclude the point i itself
+                        neighbor1.add(q);
+                }
+                cluster.get(cluster.size()-1).add(neighbor.get(0));   //label(q) ← c
+
+                if (adj.get(neighbor.get(0)).size()<Parameter.minPst) {
+                    neighbor.remove(0);
+                    continue;
+                }
+                neighbor.remove(0);
+                for (int s = 0; s< neighbor1.size(); s++){  //S ← S ∪ N
+                    neighbor.add(neighbor1.get(s));
+                }
+            }
+        }
+//        for (int i =0; i< Points.size(); i++){
+//            if (adj.get(i).size()>=Parameter.minPst){  //judge if a point has at least minPst-1 neighbor points i.e. core point
+//
+//                if() { //judge if the cluster already exists
+//                    cluster.add(new ArrayList<>()); //create a new cluster
+//                }
+//                ArrayList<Integer> temp_cluster = new ArrayList<>();  //create a initial cluster
+//                ArrayList<Integer> temp = new ArrayList<>();  //store the points around a core point
+//                Enumeration enu = adj.get(i).keys();
+//
+//                while (enu.hasMoreElements()) {
+//                    temp.add((int) enu.nextElement());
+//                    temp_cluster.add((int) enu.nextElement());
+//                    Points.remove((int) enu.nextElement()); //remove those points meaning that they are visited
+//                    //System.out.print(enu.nextElement()+" ");
+//                }
+//                while (temp.size()!=0){
+//
+//                }
+//
+//            }
+//
+//        }
+        return cluster;
+    }
+
+    public static boolean IsIn(int k, ArrayList<Integer> t){
+        boolean x=false;
+        for (int i = 0; i< t.size(); i++){
+            if (k==t.get(i)) {
+                x = true;
+                break;
+            }
+        }
+        return x;
+    }
+
+    public static boolean Defined(Integer k, ArrayList<ArrayList<Integer>> t){
+        boolean x=false;
+        for (int i = 0; i< t.size(); i++){
+            for(int j = 0; j<t.get(i).size(); j++){
+                if (k==t.get(i).get(j)) {
+                    x = true;
+                    break;
+                }
+            }
+        }
+        return x;
+    }
+
+
+    public static ClusterData dynamic_DBSCAN(ArrayList<ArrayList<Integer>> vector, ArrayList<Integer> array){
+        //dynamic method with ML model for DBSCAN
+        //vector is used to store the clustering result, array is used to store the update
+        //for the dynamic algorithm, we use an auxiliary program in DSframe to help decide the size of updates
+        int merge = 0;
+        int split = 0;
+        int move = 0;
+        int loop = 0;
+
+        return new ClusterData(vector, merge, split, move, loop);
+    }
+
+
+    public static void static_Kmeans(ArrayList<ArrayList<Integer>> vector, ArrayList<Integer> array, double k, ArrayList<Hashtable> adj){
+
+    }
+
+
+
     public static ClusterData IncrementalDB(ArrayList<ArrayList<Integer>> vector, ArrayList<Integer> array, double k, ArrayList<Hashtable> adj) throws IOException {
+        //array is used to store the updated records, e.g. newly added records, if the existing records are removed, the variable "array"  then is empty and we just need to predict which clusters will change.
     //k是阈值
     //该算法检测初始分类中的每个点是否符合到该类中剩余点的平均距离小于阈值，若不小于，则拿出来作为自由点重新加入计算
     int i = 0;
@@ -90,7 +226,7 @@ public class Cluster {
     File file9 = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/DB/train/Size2.txt");
     File file10 = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/DB/train/Size1_S.txt");
     File file11 = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/DB/train/Size2_S.txt");
-        File file111 = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/DB/train/DBindexHistroy.txt");
+    File file111 = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/DB/train/DBindexHistroy.txt");
 //    File file2 = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/DB/Intra800.txt");
 //    File file3 = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/DB/Inter800.txt");
 //    File file4 = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/DB/change800.txt");
@@ -132,7 +268,7 @@ public class Cluster {
     PrintWriter pw111 = new PrintWriter(xw111);
 
 
-    ArrayList<ArrayList<Integer>> queue = new ArrayList<ArrayList<Integer>>();  //用来存储新的schema的队列
+    ArrayList<ArrayList<Integer>> queue = new ArrayList<ArrayList<Integer>>();  //store the updates with a queue
     for (i = 0; i < array.size(); i++) {
         queue.add(new ArrayList<Integer>());
         queue.get(i).add(array.get(i));
@@ -417,8 +553,6 @@ public class Cluster {
     return new ClusterData(vector, merge, split, move, loop);
     }
 
-
-
     public static ClusterData DBGreedy(ArrayList <ArrayList<Integer>> array, int k, ArrayList<Hashtable> adj) throws IOException {
         int i = 0;
         int j = 0;
@@ -699,15 +833,16 @@ public class Cluster {
                         if (array1.get(j).isEmpty())
                             continue;
                         else {
-                            double a= Intra_Cluster(array1.get(i), adj);
-                            double b= Intra_Cluster(array1.get(j), adj);
-                            double c= Inter_Cluster(array1.get(i), array1.get(j), adj);
-                            // if (temp < Fraction( a+b + 0.01, c + 0.001))
-                            if (temp < Fraction( a+b + 0.01, c + 0.001))  //find the minimal DB-index
+                            double a = Intra_Cluster(array1.get(i), adj);
+                            double b = Intra_Cluster(array1.get(j), adj);
+                            double c = Inter_Cluster(array1.get(i), array1.get(j), adj);
+                        // if (temp < Fraction( a+b + 0.01, c + 0.001))
+                            if (temp < Fraction(a + b + 0.01, c + 0.001))  //find the minimal DB-index
                             {
                                 // if (temp < Fraction( a+b + 0.01, c + 0.001))
-                                temp = Fraction(a+b + 0.01, c+ 0.001);
+                                temp = Fraction(a + b + 0.01, c + 0.001);
                             }
+
                         }
                     }
                 }
@@ -724,77 +859,6 @@ public class Cluster {
         return sum;
     }
 
-    public static double DBindexForMerge(int s1, int s2, ArrayList <ArrayList<Integer>>vector, ArrayList<Hashtable> adj) {
-        double array2[] = new double[vector.size()-1]; //存储n个cluster的separation measure最大值
-        Arrays.fill(array2, 0); //初始化所有元素为0
-
-        vector.add(new ArrayList<Integer>());
-        vector.get(vector.size()-1).addAll(vector.get(s1));
-        vector.get(vector.size()-1).addAll(vector.get(s2));
-
-        //遇到空类直接continue跳过
-        for (int i = 0; i < vector.size(); i++) {
-            if (vector.get(i).isEmpty()|| i==s1 || i==s2)
-                continue;
-            else {
-                double temp = 0;
-                for (int j = 0; j < vector.size(); j++) {
-                    if (j == i) continue;
-                    else {
-                        if (vector.get(j).isEmpty())
-                            continue;
-                        else {
-                            double a= Intra_Cluster(vector.get(i), adj);
-                            double b= Intra_Cluster(vector.get(j), adj);
-                            double c= Inter_Cluster(vector.get(i), vector.get(j), adj);
-                            // if (temp < Fraction( a+b + 0.01, c + 0.001))
-                            if (temp < Fraction( a+b + 0.01, c + 0.001))  //find the minimal DB-index
-                            {
-                                // if (temp < Fraction( a+b + 0.01, c + 0.001))
-                                temp = Fraction(a+b + 0.01, c+ 0.001);
-                            }
-                        }
-                    }
-                }
-                array2[i] = temp;
-            }
-        }
-
-        double sum = 0;
-        for (int i = 0; i < array2.length; i++) {
-            sum = sum + array2[i];
-        }
-        vector.remove(vector.size()-1);
-
-        return sum;
-    }
-
-    public static double Intra_ClusterBatch(int a, ArrayList <Integer> array1, double array[][]){
-        double avg=0;
-        double sum=0;
-        int i=0;
-        int j=0;
-        array1.add(a);
-        if (array1.size()==1){
-            avg=0;
-        }
-        else {
-            for (i = 0; i < array1.size()-1; i++) {
-
-                for (j = i + 1; j < array1.size(); j++) {
-                    // if (i==j) continue;
-                    //need to store the adjacent matrix, compute the similarity is very costly
-                    //sum = sum + SimFunction.Jaccardsim(array1.get(i), array1.get(j));
-                    sum = sum + array[array1.get(i)][array1.get(j)];
-                }
-
-            }
-            avg = 1 - sum / (array1.size() * (array1.size() - 1) / 2);
-        }
-        array1.remove(array1.size()-1);
-        return avg;
-
-    }
 
     public static double Intra_Cluster(ArrayList <Integer> array1, ArrayList<Hashtable> adj){
         double avg=0;
@@ -806,7 +870,6 @@ public class Cluster {
         }
         else {
             for (i = 0; i < array1.size()-1; i++) {
-
                 for (j = i + 1; j < array1.size(); j++) {
                     if(adj.get(array1.get(i)).get(array1.get(j))==null){
                         continue;
@@ -821,38 +884,13 @@ public class Cluster {
     }
 
     //this function is used to compute intra if new records are inserted
-    public static double Intra_ClusterAdd(ArrayList <Integer> array1, ArrayList <Integer> array2, double array[][], double m){
-        double avg=0;
-        double sum=(1-m)*(array1.size() * (array1.size() - 1) / 2);
-        int i=0;
-        int j=0;
-        for (i = 0; i < array2.size(); i++){
-            array1.add(array2.get(i));
-        }
-        if (array1.size()==1){
-            avg=0;
-        }
-        else {
-            for (i = 0; i < array2.size(); i++) {
-                for (j = 0; j < array1.size(); j++) {
-                    sum = sum + array[array2.get(i)][array1.get(j)];
-                }
-            }
-            sum = sum -array2.size();  //because the records in array2 have been compared with themselves once
-            avg = 1 - sum / (array1.size() * (array1.size() - 1) / 2);
-        }
-        removeFrom(array1, array1.size()-array2.size()+1);
-        return avg;
-    }
-
 
     public static double Inter_Cluster(ArrayList <Integer> array1, ArrayList <Integer> array2, ArrayList<Hashtable> adj) {
         double avg=0;
         double sum=0;
         int i=0;
         int j=0;
-        for (i=0; i<array1.size(); i++)
-        {
+        for (i=0; i<array1.size(); i++) {
             for (j=0; j< array2.size(); j++) {
                 if(adj.get(array1.get(i)).get(array2.get(j))==null){
                     continue;
@@ -866,30 +904,6 @@ public class Cluster {
     }
     // array2 is a 1d array
 
-    public static ArrayList<Double> Bubbletsort (double array[][]) {
-        //对二维数组进行排序
-        ArrayList<Double> a1 = new ArrayList<Double>();  //用一维数组链表重新存数据
-        for (int i = 0; i < array.length; i++) {
-            for (int j = 0; j <array[0].length; j++){
-                a1.add(array[i][j]);
-            }
-        }
-        double temp=0;
-        for (int i = 0; i < a1.size(); i++) {
-            //外层循环，遍历次数
-            for (int j = 0; j < a1.size() - i - 1; j++) {
-                //内层循环，升序（如果前一个值比后一个值大，则交换）
-                //内层循环一次，获取一个最大值
-                if (a1.get(j) < a1.get(j + 1)) {
-                    temp = a1.get(j + 1);
-                    a1.set(j+1, a1.get(j));
-                    a1.set(j, temp);
-                }
-            }
-        }
-        return a1;
-    }
-
 
     public static double Fraction(double a, double b){
         double c= 0;
@@ -898,18 +912,19 @@ public class Cluster {
 
     }
 
-    public static double AvgSim(String s, ArrayList <String> array2) {
-        double avg=0;
-        double sum=0;
-        int j=0;
-            for (j=0; j< array2.size(); j++)
-            {
-                sum= sum + SimFunction.Jaccardsim(s, array2.get(j));
+
+    public static ArrayList<Integer> NeighborNode( ArrayList<Integer> array1, ArrayList<Hashtable> adj, int l) {
+        ArrayList<Integer> temp = new ArrayList<>();
+        for (int i=0; i< array1.size(); i++) {
+            Hashtable tt = adj.get(i);
+            Enumeration enkey = tt.keys();
+            while (enkey.hasMoreElements()) {
+                Object aa = enkey.nextElement();
+                if((int) aa<l)  //this is because we use the adjacent matrix of all records, when we test a small fraction of the whole dataset, we still use the whole adjacent matrix
+                    temp.add((int) aa);
             }
-
-        avg= sum/array2.size();
-        return avg;
-
+        }
+        return temp;
     }
 
     public static boolean IsConnected( ArrayList<Integer> array1,  ArrayList<Integer> array2, double k, ArrayList<Hashtable> adj) {
@@ -932,16 +947,17 @@ public class Cluster {
         return a;
     }
 
-    public static boolean IsConnectedValue( int x,  ArrayList<Integer> array2, double k, double array[][]) {
+    public static boolean IsConnected1( ArrayList<Integer> array1,  ArrayList<Integer> array2, double k, ArrayList<Hashtable> adj) {
         int i=0;
         int j=0;
         boolean a= false;
         labelA:
-        for (j=0; j< array2.size(); j++){
-            if (array[x] [array2.get(j)]>=k )
-            {
-                a=true;
-                break labelA;  //跳出多重循环
+        for (i=0; i< array1.size(); i++) {
+            for (j = 0; j < array2.size(); j++) {
+                if (array1.get(i) == array2.get(j)) {
+                    a = true;
+                    break labelA;  //跳出多重循环
+                }
             }
         }
         return a;
@@ -964,7 +980,9 @@ public class Cluster {
         // write println into ChangeHistory file
         FileWriter xw = null;
         try {
-            File file = new File("/Users/binbingu/Documents/Codes/Write-test/Change-Batch.txt");
+            //File file = new File("/Users/binbingu/Documents/Codes/Write-test/Change-Batch.txt");
+            File file = new File("/Users/binbingu/Documents/Codes/Write-test/Music/Change-Batch.txt");
+
             xw = new FileWriter(file, true);
         }
         catch (IOException e) {
@@ -1113,8 +1131,6 @@ public class Cluster {
 //        return vector1;
 //    }
 
-
-
     //Correlation Clustering
     public static double ScoreForCorr(ArrayList <ArrayList<Integer>> array1, ArrayList<Hashtable> adj) {
         int i = 0;
@@ -1145,8 +1161,6 @@ public class Cluster {
         sum = intra_sum + (inter_sum/2);
         return sum;
     }
-
-
 
     public static double IntraForCorr(ArrayList <Integer> array1, ArrayList<Hashtable> adj){
         double avg=0;
@@ -1197,7 +1211,6 @@ public class Cluster {
         }
         return avg;
     }
-
 
     public static double InterForCorr(ArrayList <Integer> array1, ArrayList <Integer> array2, ArrayList<Hashtable> adj) {
         double sum=0;
@@ -1294,8 +1307,10 @@ public class Cluster {
         // write println into ChangeHistory file
 
         //File file = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/Change-IncreForCorr.txt");
-        File file = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/Corr/Corr-Merge2000.txt");
-        File file1 = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/Corr/Corr-Split2000.txt");
+        //File file = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/Corr/Corr-Merge2000.txt");
+        //File file1 = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/Corr/Corr-Split2000.txt");
+        File file = new File("/Users/binbingu/Documents/Codes/Write-test/Music/Corr/Corr-Merge2000.txt");
+        File file1 = new File("/Users/binbingu/Documents/Codes/Write-test/Music/Corr/Corr-Split2000.txt");
 
 //        if (file.exists()) {
 //            file.delete();
@@ -1327,119 +1342,121 @@ public class Cluster {
             double temp = ScoreForCorr1(vector, queue, adj);
             //System.out.println("3 "+temp);
             boolean change = false;  //用来记录cluster是否改变
-            ArrayList<Integer> b111;
-            for (i = vector.size() - 1; i >= 0; i--) {          //compare queue.get(0) with vector
-                if (IsConnected(queue.get(0), vector.get(i), k, adj) == false){    //we do need to judge IsConnected every time.
-                    continue;
-                }
-                else {
-                    loop ++;
-                    ArrayList <Integer> bb = new ArrayList<Integer>();  //use it to store the original cluster
-                    int a111 = vector.get(i).size();
-                    vector.get(i).addAll(queue.get(0));         //try to Merge   ;   add the arraylist b111 i.e. the first arraylist in queue
-                    System.out.println(vector);
-                    System.out.println(queue);
+            ArrayList<Integer> b123 = NeighborNode(queue.get(0), adj, 4000);
+            if(!b123.isEmpty()) {
+                for (i = vector.size() - 1; i >= 0; i--) {          //compare queue.get(0) with vector
+                    if (IsConnected1(b123, vector.get(i), k, adj) == false) {    //we do need to judge IsConnected every time.
+                        continue;
+                    } else {
+                        loop++;
+                        ArrayList<Integer> bb = new ArrayList<Integer>();  //use it to store the original cluster
+                        int a111 = vector.get(i).size();
+                        vector.get(i).addAll(queue.get(0));         //try to Merge   ;   add the arraylist b111 i.e. the first arraylist in queue
+                        //System.out.println(vector);
+                        System.out.println(queue);
 //                    System.out.println("4 "+ScoreForCorr2(vector, queue, array1));
 //                    System.out.println("5 "+temp);
 //                    System.out.println("6 "+array1[0][2]);
-                    if (ScoreForCorr2(vector, queue, adj) < temp) {
-                        for (j=0; j< a111; j++)
-                            bb.add(vector.get(i).get(j));
-
-                        System.out.println(queue.get(0)+ " Merge With " +bb + " into "+ vector.get(i));
-                        //pw.println(queue.get(0)+ " Merge With " +bb + " into "+ vector.get(i));
-                        z1++;
-                        pw.println(z1 + " "+IntraCorrAvg(vector.get(i), adj));
-                        //pw.println("Merge Parameters: (c0, c1,c2) "+ IntraCorrAvg(vector.get(i), array1)+" "+ IntraCorrAvg(queue.get(0), array1)+" "+ IntraCorrAvg(bb, array1));
-                        pw.flush();
-                        bb.clear();
-                        queue.add(vector.get(i));
-                        queue.remove(0);
-                        vector.remove(i);
-                        change = true;
-                        merge++;
-                        break;
-                    }
-                    else {
-                        removeFrom(vector.get(i), a111);      //maybe there is an existing method to do this
-                    }
-                }
-            }
-            if (change == false) {
-                for (i = queue.size() - 1; i > 0; i--) {          //compare queue.get(0) with queue except itself
-                    if (IsConnected(queue.get(0), queue.get(i), k, adj) == false)    //we do need to judge IsConnected every time.
-                    {
-                        continue;
-                    } else {
-                        loop ++;
-                        int a11 = vector.size();
-                        ArrayList <Integer> cc = new ArrayList<Integer>();
-                        int a1111 = queue.get(i).size();     //记录此时长度，方便remove
-                        queue.get(i).addAll(queue.get(0));         //try to Merge   ;   add the arraylist b111 i.e. the first arraylist in queue
                         if (ScoreForCorr2(vector, queue, adj) < temp) {
-                            //use it to store the original cluster
-                            for (j=0; j< a1111; j++)
-                                cc.add(queue.get(i).get(j));
+                            for (j = 0; j < a111; j++)
+                                bb.add(vector.get(i).get(j));
 
-                            System.out.println(queue.get(0)+ " Merge With " +cc + " into "+ queue.get(i));
-                            //pw.println(queue.get(0)+ " Merge With " +cc + " into "+ queue.get(i));
+                            System.out.println(queue.get(0) + " Merge With " + bb + " into " + vector.get(i));
+                            //pw.println(queue.get(0)+ " Merge With " +bb + " into "+ vector.get(i));
                             z1++;
-                            pw.println(z1 + " "+IntraCorrAvg(queue.get(0), adj));
-                            //pw.println("Merge Parameters: (c0, c1,c2) "+ IntraCorrAvg(queue.get(i), array1)+" "+ IntraCorrAvg(queue.get(0), array1)+" "+ IntraCorrAvg(cc, array1));
+                            pw.println(z1 + " " + IntraCorrAvg(vector.get(i), adj));
+                            //pw.println("Merge Parameters: (c0, c1,c2) "+ IntraCorrAvg(vector.get(i), array1)+" "+ IntraCorrAvg(queue.get(0), array1)+" "+ IntraCorrAvg(bb, array1));
                             pw.flush();
-                            cc.clear();
-                            queue.add(queue.get(i));
-                            queue.remove(i);
+                            bb.clear();
+                            queue.add(vector.get(i));
                             queue.remove(0);
+                            vector.remove(i);
                             change = true;
                             merge++;
                             break;
                         } else {
-                            removeFrom(queue.get(i), a1111);      //maybe there is an existing method to do this
+                            removeFrom(vector.get(i), a111);      //maybe there is an existing method to do this
+                        }
+                    }
+                }
+
+                if (change == false) {
+                    for (i = queue.size() - 1; i > 0; i--) {          //compare queue.get(0) with queue except itself
+                        if (IsConnected1(b123, queue.get(i), k, adj) == false)    //we do need to judge IsConnected every time.
+                        {
+                            continue;
+                        } else {
+                            loop++;
+                            int a11 = vector.size();
+                            ArrayList<Integer> cc = new ArrayList<Integer>();
+                            int a1111 = queue.get(i).size();     //记录此时长度，方便remove
+                            queue.get(i).addAll(queue.get(0));         //try to Merge   ;   add the arraylist b111 i.e. the first arraylist in queue
+                            if (ScoreForCorr2(vector, queue, adj) < temp) {
+                                //use it to store the original cluster
+                                for (j = 0; j < a1111; j++)
+                                    cc.add(queue.get(i).get(j));
+
+                                System.out.println(queue.get(0) + " Merge With " + cc + " into " + queue.get(i));
+                                //pw.println(queue.get(0)+ " Merge With " +cc + " into "+ queue.get(i));
+                                z1++;
+                                pw.println(z1 + " " + IntraCorrAvg(queue.get(0), adj));
+                                //pw.println("Merge Parameters: (c0, c1,c2) "+ IntraCorrAvg(queue.get(i), array1)+" "+ IntraCorrAvg(queue.get(0), array1)+" "+ IntraCorrAvg(cc, array1));
+                                pw.flush();
+                                cc.clear();
+                                queue.add(queue.get(i));
+                                queue.remove(i);
+                                queue.remove(0);
+                                change = true;
+                                merge++;
+                                break;
+                            } else {
+                                removeFrom(queue.get(i), a1111);      //maybe there is an existing method to do this
+                            }
                         }
                     }
                 }
             }
 
-            if (change == false & queue.get(0).size() > 1) {      //try to Split, if b111.size()=1, we do not need to split
-                vector.add(new ArrayList<>());
-                for (i=0; i< queue.get(0).size(); i++)
-                    vector.get(vector.size()-1).add(queue.get(0).get(i));
-                //vector.add(queue.get(0));       //note that if we directly add queue.get(0), we actually are using queue.get(0), it is dynamic
-                vector.add(new ArrayList<>());
-                for (p = queue.get(0).size() - 1; p >= 0; p--) {
-                    loop++;
-                    vector.get(vector.size() - 1).add(vector.get(vector.size() - 2).get(0));    //add b111.get(p) to next row
-                    vector.get(vector.size() - 2).remove(0);   //delete b111.get(p) from the last row
-                    //System.out.println("Db Split "+DBindex111(vector, queue, array1));
-                    //System.out.println("temp "+temp);
-                    if (ScoreForCorr2(vector, queue, adj) < temp) {
-                        System.out.println(queue.get(0)+ " Split into "+ vector.get(vector.size() - 1)+ " and " + vector.get(vector.size() - 2));
-                        //pw1.println(queue.get(0)+ " Split into "+ vector.get(vector.size() - 1)+ " and " + vector.get(vector.size() - 2));
-                        z2++;
-                        pw1.println(z2 + " "+IntraCorrAvg(queue.get(0), adj));
-                        //pw.println("Split Parameters: (c0, c1,c2) "+ IntraCorrAvg(queue.get(0), array1)+" "+ IntraCorrAvg(vector.get(vector.size() - 1), array1)+" "+ IntraCorrAvg(vector.get(vector.size() - 2), array1));
-                        pw1.flush();
-                        temp = ScoreForCorr2(vector, queue, adj);
-                        change = true;
-                        split++;
+                if (change == false & queue.get(0).size() > 1) {      //try to Split, if b111.size()=1, we do not need to split
+                    vector.add(new ArrayList<>());
+                    for (i = 0; i < queue.get(0).size(); i++)
+                        vector.get(vector.size() - 1).add(queue.get(0).get(i));
+                    //vector.add(queue.get(0));       //note that if we directly add queue.get(0), we actually are using queue.get(0), it is dynamic
+                    vector.add(new ArrayList<>());
+                    for (p = queue.get(0).size() - 1; p >= 0; p--) {
+                        loop++;
+                        vector.get(vector.size() - 1).add(vector.get(vector.size() - 2).get(0));    //add b111.get(p) to next row
+                        vector.get(vector.size() - 2).remove(0);   //delete b111.get(p) from the last row
+                        //System.out.println("Db Split "+DBindex111(vector, queue, array1));
+                        //System.out.println("temp "+temp);
+                        if (ScoreForCorr2(vector, queue, adj) < temp) {
+                            System.out.println(queue.get(0) + " Split into " + vector.get(vector.size() - 1) + " and " + vector.get(vector.size() - 2));
+                            //pw1.println(queue.get(0)+ " Split into "+ vector.get(vector.size() - 1)+ " and " + vector.get(vector.size() - 2));
+                            z2++;
+                            pw1.println(z2 + " " + IntraCorrAvg(queue.get(0), adj));
+                            //pw.println("Split Parameters: (c0, c1,c2) "+ IntraCorrAvg(queue.get(0), array1)+" "+ IntraCorrAvg(vector.get(vector.size() - 1), array1)+" "+ IntraCorrAvg(vector.get(vector.size() - 2), array1));
+                            pw1.flush();
+                            temp = ScoreForCorr2(vector, queue, adj);
+                            change = true;
+                            split++;
+                        } else {
+                            vector.get(vector.size() - 2).add(vector.get(vector.size() - 1).get(vector.get(vector.size() - 1).size() - 1));  // else put the value into its original position.
+                            vector.get(vector.size() - 1).remove(vector.get(vector.size() - 1).size() - 1);
+                        }
+                    }
+                    if (change == true) {
+                        queue.add(vector.get(vector.size() - 1));
+                        queue.add(vector.get(vector.size() - 2));
+                        vector.remove(vector.size() - 1);
+                        vector.remove(vector.size() - 1);
+                        queue.remove(0);
+
                     } else {
-                        vector.get(vector.size() - 2).add(vector.get(vector.size() - 1).get(vector.get(vector.size() - 1).size() - 1));  // else put the value into its original position.
-                        vector.get(vector.size() - 1).remove(vector.get(vector.size() - 1).size() - 1);
+                        vector.remove(vector.size() - 1);
+                        vector.remove(vector.size() - 1);
                     }
                 }
-                if (change == true) {
-                    queue.add(vector.get(vector.size() - 1));
-                    queue.add(vector.get(vector.size() - 2));
-                    vector.remove(vector.size() - 1);
-                    vector.remove(vector.size() - 1);
-                    queue.remove(0);
 
-                } else {
-                    vector.remove(vector.size() - 1);
-                    vector.remove(vector.size() - 1);
-                }
-            }
 /*
             if (change==false ) {    //try to move
                 {
@@ -1525,7 +1542,6 @@ public class Cluster {
         }
         return new Para(inter0, k);
     }
-
 
     public static Integer MinInterCluster(ArrayList <Integer> array1, ArrayList <Integer> array2,  ArrayList<ArrayList<Integer>> vector, ArrayList<ArrayList<Integer>> queue, ArrayList<Hashtable> adj) {
         //double min=0;

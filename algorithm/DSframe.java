@@ -10,7 +10,8 @@ public class DSframe {
     }
 
     public static void Naive(ArrayList<ArrayList<String>> abc, ArrayList<ArrayList<Integer>> inter,  ArrayList<Integer> ttt, ArrayList<Hashtable> adj) throws IOException {
-        File file = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/Change_Batch1000.txt");
+        //File file = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/Change_Batch1000.txt");
+        File file = new File("/Users/binbingu/Documents/Codes/Write-test/Music/Change_Batch4000.txt");
 
         if (file.exists()) {  //if the file exists, then delete it and then create it so that we can get a null file every time
             file.delete();
@@ -96,7 +97,8 @@ public class DSframe {
 
         //File file = new File("/Users/binbingu/Documents/Codes/Write-test/Change-Incre.txt");
         //File file = new File("/Users/binbingu/Documents/Codes/Write-test/History_batch2.txt");
-        File file = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/History_batch2000.txt");
+        File file = new File("/Users/binbingu/Documents/Codes/Write-test/Music/History_batch4K.txt");
+        //File file = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/History_batch2000.txt");
         //File file = new File("/Users/binbingu/Documents/Codes/Write-test/Synthetic/History_batch5000.txt");
 
         if (file.exists()) {  //if the file exists, then delete it and then create it so that we can get a null file every time
@@ -115,7 +117,7 @@ public class DSframe {
         for (int i=1;i<abc.size();i++){
             ttt.add(i);   //record linkage with batch size =1      that means the incremental way may be not polynomial
             //System.out.println("The~"+ i+ "-th round:");                                maybe as complex as stated in the paper which is n^6
-            if((i%500==0)|| i==abc.size()-1){
+            if((i%3999==0)|| i==abc.size()-1){
                 update++;
                 //Cluster.ClusterData result = Cluster.IncrementalDB(inter, ttt, Cluster.Parameter.threshold, ad);   //this method is quite costly when we consider each record as a snapshot
                 Cluster.ClusterData result = Cluster.IncreForCorr(inter, ttt, Cluster.Parameter.threshold, adj);

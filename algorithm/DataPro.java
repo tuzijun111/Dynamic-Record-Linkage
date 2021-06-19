@@ -19,9 +19,6 @@ public class DataPro {
 //                };
 //        WriteAdjMatrix("/Users/binbingu/Documents/Datasets/Music Brzinz/AdjMatrix.txt", temp);
     }
-
-
-
     // Cora data proprocessing
     public static ArrayList<ArrayList<String>> Cora() throws IOException {
         ArrayList<ArrayList<String>> data = new ArrayList<ArrayList<String>>();
@@ -131,8 +128,6 @@ public class DataPro {
         return data;
     }
 
-
-
     //Data Processing for csv file
     public static ArrayList<ArrayList<String>> CsvData(String filepath) throws IOException {
         ArrayList<ArrayList<String>> data = new ArrayList<ArrayList<String>>();
@@ -163,6 +158,10 @@ public class DataPro {
     public static void WriteAdjMatrix(String filepath, double ad[][]) throws IOException {
         //File file = new File("/Users/binbingu/Documents/Datasets/Music Brzinz/AdjMatrix.txt");
         File file = new File(filepath);
+        if (file.exists()) {  //if the file exists, then delete it and then create it so that we can get a null file every time
+            file.delete();
+        }
+        file.createNewFile();
         FileWriter xw = null;
         xw = new FileWriter(file, true);
         PrintWriter pw = new PrintWriter(xw);
@@ -259,7 +258,8 @@ public class DataPro {
                 ArrayList<String> item = new ArrayList<String>(); //store the attribute value by 1-d arraylist
                 String item1[] = line.split(",");
                 for (int j =0; j<item1.length; j++) {
-                    if (Double.parseDouble(item1[j]) > Cluster.Parameter.threshold) {
+                    if (Double.parseDouble(item1[j]) < Cluster.Parameter.minDis) {   //distance the larger distance, the less the similarity
+                    //if (Double.parseDouble(item1[j]) > Cluster.Parameter.threshold) {   //used for similarity, the larger the value the larger the similarity
                         pw.print("," + j + "=" + Double.parseDouble(item1[j]));
                         pw.flush();
                     }
@@ -290,6 +290,8 @@ public class DataPro {
                 adj.add(new Hashtable());
                 ArrayList<String> item = new ArrayList<String>(); //store the attribute value by 1-d arraylist
                 String item1[] = line.split(",");
+                //really need to notice the first term; e.g 0=0,0=0.0,1=0.0; 0=0 is invalid however it deos not matter in this case because there always exists a term like 0=0.0
+                // meaning that 0 always connects with itself and the hashtable only counts such a key once.
                 for (int i =item1.length-1; i>=0; i--){
                     String item2[] =item1[i].split("=");     //split a pair with =
                     adj.get(adj.size()-1).put(Integer.parseInt(item2[0]), Double.parseDouble(item2[1]));

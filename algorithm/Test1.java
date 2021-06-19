@@ -10,56 +10,32 @@ import java.util.ArrayList;
 
 public class Test1 {
     public static void main(String[] args) throws IOException, InterruptedException {
+//        BufferedReader read = new BufferedReader(new FileReader("/user"));
+//        String line;
+//        line= read.readLine();
+
+//        File file1 = new File("src/Intra_S.txt");
+//        if (file1.exists()) { file1.delete(); }
+//        file1.createNewFile();
+//        FileWriter xw1 = null;
+//        xw1 = new FileWriter(file1, true);
+//        PrintWriter pw1 = new PrintWriter(xw1);
+//        pw1.print("Hello");
+//        pw1.flush();
+//        pw1.close();
+
+        //int[] a = {1,2,3,4,5};
+        int[] c = new int [5];
+        c[1]= 2;
+        for(int i =0; i< c.length; i++)
+            System.out.println(c[i]);
+
+        //ArrayList <String> b = new ArrayList<String>();
+
 
     }
 
-    public static void Count(double a[][]){
-        int k = a.length;
-        int count09 = 0;
-        int count08 = 0;
-        int count07 = 0;
-        int count06 = 0;
-        int count05 = 0;
-        for (int i = 0; i< k ; i++){
-            for (int j = i+1; j< k ; j++){
-                if(a[i][j]>=0.9){
-                     count09++;
-                     continue;
-                }
-                else {
-                    if (a[i][j]>= 0.85)
-                    {
-                        count08++;
-                        continue;
-                    }
-                    else {
-                        if(a[i][j]>= 0.8){
-                            count07++;
-                            continue;
-                        }
-                        else{
-                            if(a[i][j]>=0.75){
-                                count06++;
-                                continue;
-                            }
-                            else {
-                                if(a[i][j]>=0.7){
-                                    count05++;
-                                    continue;
-                                }
-                            }
-                        }
-                    }
 
-                }
-            }
-        }
-        System.out.println("The number of paris whose value is larger or equal to 0.9 "+count09);
-        System.out.println("The number of paris whose value is larger or equal to 0.85 "+count08);
-        System.out.println("The number of paris whose value is larger or equal to 0.8 "+count07);
-        System.out.println("The number of paris whose value is larger or equal to 0.75 "+count06);
-        System.out.println("The number of paris whose value is larger or equal to 0.7 "+count05);
-    }
 }
 
 

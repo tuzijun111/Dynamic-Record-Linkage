@@ -46,7 +46,6 @@ public class AdjMatrix {
         }
     }
 
-
     public static double[][] MusicAdj(ArrayList<ArrayList<String>> gramarray, ArrayList<ArrayList<Double>> weight) throws IOException, ClassNotFoundException {
 //    artist+title+album
         double admatrix[][] = new double[gramarray.size()][gramarray.size()];
@@ -103,6 +102,39 @@ public class AdjMatrix {
         return admatrix;
     }
 
+    public static double[][] EuclidAdj_DB(ArrayList<ArrayList<String>> abc, int k[], int minDis) throws IOException {
+        //adjacent matrix based on Euclid distance; array k is defined to decide which attributes are used for computing
+        //for amazon, we use the attributes TARGET_NAME AND LOGIN  i.e. the second and third attribute
+        double admatrix[][] = new double[abc.size()][abc.size()];
+        for (int i = 0; i< abc.size(); i++){
+            a:
+            for (int j=i+1; j<abc.size(); j++){
+                double distance = 0;
+//                for (int m = 0; m< k.length; m++) {
+//                    if ( (Integer.parseInt(abc.get(i).get(k[m])) - Integer.parseInt(abc.get(j).get(k[m])))< minDis){
+//                        continue a;
+//                    }
+//                }
+                for (int m = 0; m< k.length; m++) {
+                    double temp = Math.pow(Integer.parseInt(abc.get(i).get(k[m])) - Integer.parseInt(abc.get(j).get(k[m])), 2);
+                    distance += temp;
+                }
+                if (Math.sqrt(distance)>minDis)
+                    admatrix[i][j] = 99;
+                else
+                    admatrix[i][j] = Math.sqrt(distance);
+            }
+        }
+
+        for (int i = 0; i< abc.size(); i++){
+            for (int j = 0; j<i; j++){
+                admatrix[i][j] = admatrix[j][i];
+            }
+        }
+
+        return admatrix;
+    }
+
     //public static double CosineNgram(String stri1, String stri2, int n) throws IOException { //n=3 for trigram
     public static ArrayList<ArrayList<String>> CosineNgram() throws IOException { //n=3 for trigram
         double sim = 0;
@@ -121,7 +153,6 @@ public class AdjMatrix {
                     }
                 }
             //}
-
         }
         ArrayList<ArrayList<String>> gramarray = new ArrayList<ArrayList<String>>();
         for (int i=0;i<item.size();i++) {
@@ -238,7 +269,6 @@ public class AdjMatrix {
     public static double log(double value, double base) {
         return Math.log(value) / Math.log(base);
      }
-
 
 
     public static boolean IsIn(String s, ArrayList<String> array){
